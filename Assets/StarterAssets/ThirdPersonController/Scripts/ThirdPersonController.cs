@@ -1,4 +1,6 @@
 ﻿using Unity.Netcode;
+using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 #if ENABLE_INPUT_SYSTEM 
 using UnityEngine.InputSystem;
@@ -110,6 +112,8 @@ namespace StarterAssets
         private const float _threshold = 0.01f;
 
         private bool _hasAnimator;
+
+
 
         private bool IsCurrentDeviceMouse
         {
@@ -254,6 +258,21 @@ namespace StarterAssets
             // normalise input direction
             Vector3 inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
 
+            
+            // A Gregorian: If the player is aiming do not rotate the character based on keys, but based on where the mouse is aiming
+            if(_input.aim)
+            {
+                Vector3 aimDirection = Vector3.zero;
+                Vector2 screenCenterPoint = new Vector2(Screen.width / 2f, Screen.height/2f);
+                Ray ray = Camera.main.ScreenPointToRay(screenCenterPoint);
+                
+                // Don't look up and down just yet
+                aimDirection = ray.direction;
+
+             
+
+                transform.forward = Vector3.Lerp(transform.forward, aimDirection, Time.deltaTime * 20f);
+            }
             // note: Vector2's != operator uses approximation so is not floating point error prone, and is cheaper than magnitude
             // if there is a move input rotate player when the player is moving
             if (_input.move != Vector2.zero)
@@ -264,7 +283,10 @@ namespace StarterAssets
                     RotationSmoothTime);
 
                 // rotate to face input direction relative to camera position
-                transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
+                if(!_input.aim)
+                {
+                    transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
+                }
             }
 
 

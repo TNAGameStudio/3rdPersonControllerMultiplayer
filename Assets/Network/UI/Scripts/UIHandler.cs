@@ -14,8 +14,10 @@ public class UIHandler : MonoBehaviour
     public void OnHost()
     {
         NetworkManager.Singleton.StartHost();
-        //Cursor.visible = false;
-        //Cursor.lockState = CursorLockMode.Locked;
+        
+        // Lock the cursor and make it invisible
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     public void OnClient()
