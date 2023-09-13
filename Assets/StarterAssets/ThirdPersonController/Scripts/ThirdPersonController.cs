@@ -98,7 +98,7 @@ namespace StarterAssets
         private int _animIDSpeed;
         private int _animIDGrounded;
         private int _animIDJump;
-        private int _animIDFreeFall;
+        private int _animIDFreeFall; 
         private int _animIDMotionSpeed;
 
 #if ENABLE_INPUT_SYSTEM 
@@ -258,43 +258,50 @@ namespace StarterAssets
             // normalise input direction
             Vector3 inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
 
-            
             // A Gregorian: If the player is aiming do not rotate the character based on keys, but based on where the mouse is aiming
             if(_input.aim)
             {
                 Vector3 aimDirection = Vector3.zero;
                 Vector2 screenCenterPoint = new Vector2(Screen.width / 2f, Screen.height/2f);
                 Ray ray = Camera.main.ScreenPointToRay(screenCenterPoint);
-                
+
                 // Don't look up and down just yet
                 aimDirection = ray.direction;
-
-             
-
+                aimDirection.y = 0;
                 transform.forward = Vector3.Lerp(transform.forward, aimDirection, Time.deltaTime * 20f);
             }
             // note: Vector2's != operator uses approximation so is not floating point error prone, and is cheaper than magnitude
             // if there is a move input rotate player when the player is moving
-            if (_input.move != Vector2.zero)
+            if (_input.move != Vector2.zero && _input.aim)
             {
                 _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg +
                                   _mainCamera.transform.eulerAngles.y;
                 float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity,
                     RotationSmoothTime);
 
-                // rotate to face input direction relative to camera position
-                if(!_input.aim)
-                {
-                    transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
-                }
+                 Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
+
+                // move the player
+                _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) +
+                                new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
             }
 
+            else if (_input.move != Vector2.zero)
+            {
+                transform.forward = Quaternion.Euler(0.0f, 1.0f*inputDirection.x, 0.0f) * transform.forward;
 
-            Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
+                // move the player
+                _controller.Move(transform.forward * (_speed * Time.deltaTime) +
+                                new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
+            }
+            else {
+            
+                Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
-            // move the player
-            _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) +
-                             new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
+                // move the player
+                _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) +
+                                new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
+            }
 
             // update animator if using character
             if (_hasAnimator)

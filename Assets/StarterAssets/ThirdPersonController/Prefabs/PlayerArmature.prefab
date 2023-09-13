@@ -1200,6 +1200,7 @@ GameObject:
   - component: {fileID: -8893925844712944958}
   - component: {fileID: 8421178730610568435}
   - component: {fileID: 2396612387879234351}
+  - component: {fileID: 4494171870847078822}
   m_Layer: 8
   m_Name: PlayerArmature
   m_TagString: Player
@@ -1350,6 +1351,8 @@ MonoBehaviour:
   look: {x: 0, y: 0}
   jump: 0
   sprint: 0
+  aim: 0
+  one: 0
   analogMovement: 0
   cursorLocked: 1
   cursorInputForLook: 1
@@ -1531,6 +1534,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TransitionStateInfoList: []
   m_Animator: {fileID: 6982812146204527121}
+--- !u!114 &4494171870847078822
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4416926081852918481}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4fa3d28d1bf302c4bb3f858eeb93bef0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4523139366846529165
 GameObject:
   m_ObjectHideFlags: 0
