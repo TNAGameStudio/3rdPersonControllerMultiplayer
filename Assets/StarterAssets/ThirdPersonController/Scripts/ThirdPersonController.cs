@@ -288,15 +288,20 @@ namespace StarterAssets
 
             else if (_input.move != Vector2.zero)
             {
-                transform.forward = Quaternion.Euler(0.0f, 1.0f*inputDirection.x, 0.0f) * transform.forward;
 
-                // move the player
-                _controller.Move(transform.forward *inputDirection.z * (_speed * Time.deltaTime) +
+
+
+                transform.forward = Quaternion.Euler(0.0f, Time.deltaTime*300.0f*inputDirection.x, 0.0f) * transform.forward;
+
+                                            
+
+                _controller.Move(transform.forward  * _input.move.y* (_speed * Time.deltaTime) +
                                 new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
             }
             else {
             
                 Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
+
 
                 // move the player
                 _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) +
