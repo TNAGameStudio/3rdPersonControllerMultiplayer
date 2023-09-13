@@ -123,8 +123,10 @@ public class Hide : NetworkBehaviour
         Debug.Log("Hitting the client RPC. OwnerId: " + OwnerClientId + " client id: "+ clientid);
         
         // Do not perform on ourselves.
-        if(OwnerClientId == clientid)
+        if(IsOwner)
             return;
+
+            Debug.Log("GETTING HERE");
 
           
             if(ourPlayer.playerList.TryGetValue(clientid, out Player hidingPlayer))
