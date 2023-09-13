@@ -291,7 +291,7 @@ namespace StarterAssets
                 transform.forward = Quaternion.Euler(0.0f, 1.0f*inputDirection.x, 0.0f) * transform.forward;
 
                 // move the player
-                _controller.Move(transform.forward * (_speed * Time.deltaTime) +
+                _controller.Move(transform.forward *inputDirection.z * (_speed * Time.deltaTime) +
                                 new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
             }
             else {
