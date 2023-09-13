@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 using StarterAssets;
+using System;
 
 
 
@@ -10,6 +11,11 @@ public class Hide : NetworkBehaviour
 {
      [SerializeField] Player ourPlayer;
      private StarterAssetsInputs _input;
+     int HIDING_LAYER = 6;
+     int UNHIDING_LAYER = 0;
+     bool isHiding = false;
+     float HideCooldown = 3.0f; // 3 seconds
+     bool onCooldown = false;
      
     // Start is called before the first frame update
     void Start()
@@ -20,9 +26,40 @@ public class Hide : NetworkBehaviour
     void Update()
 
     {
+        if(onCooldown == true)
+        {
+            HideCooldown -= Time.deltaTime;
+
+            if(HideCooldown <= 0)
+            {
+                
+                onCooldown = false;
+                HideCooldown = 3.0f;
+            }
+            else
+            {
+                return;
+            }
+        }
+
         if(_input.one == true)
         {
-            ActivateAbility();
+            //set cooldown
+            onCooldown = true;
+            
+
+            if(isHiding == false)
+            {
+                ActivateAbility();
+                isHiding = true;
+            }
+            else
+            {
+                DeactivateAbility(); 
+                isHiding = false;
+            }
+
+            
 
         }
 
@@ -33,7 +70,6 @@ public class Hide : NetworkBehaviour
         // TODO: Show icon somewhere that it's enabled hiding
 
         // send RPC to server telling other clients to hide this character
-        Debug.Log("In ActivateAbility OwnerClientId: " + OwnerClientId);
         HidePlayerServerRpc(true, OwnerClientId);
 
     }
@@ -61,14 +97,25 @@ public class Hide : NetworkBehaviour
             {
                 Debug.Log("Found the other player with client id: " + clientid + " going to hide them now.");
             }
+
+            if(isHiding)// hide them
+                SetHidingLayerMaskRecursively(hidingPlayer.gameObject, HIDING_LAYER);
+            else
+                SetHidingLayerMaskRecursively(hidingPlayer.gameObject, UNHIDING_LAYER);
         }
 
         // tell all clients to hide this client
         HidePlayerClientRpc(isHiding, clientid);
-
-        Debug.Log("Hitting the server RPC");            
-
     }
+
+    private void SetHidingLayerMaskRecursively(GameObject playerGO, int masklayer)
+    {
+        playerGO.layer = masklayer;
+        foreach (Transform child in playerGO.transform)
+        {
+            SetHidingLayerMaskRecursively(child.gameObject, masklayer);
+        }
+    }    
 
     [ClientRpc]
     private void HidePlayerClientRpc(bool isHiding, ulong clientid)
@@ -80,19 +127,16 @@ public class Hide : NetworkBehaviour
             return;
 
           
-        if(isHiding)
-        {
-            // Hide the originator of RPC in the world
-            //Debug.Log("Client ID who is goign into hiding " + clientid + " After lookup: " + ourPlayer.playerList[clientid].OwnerClientId);
+            if(ourPlayer.playerList.TryGetValue(clientid, out Player hidingPlayer))
+            {
+                // TODO Handle any errors (though this is success case)
+            } 
 
-        
+            if(isHiding)// hide them
+                SetHidingLayerMaskRecursively(hidingPlayer.gameObject, HIDING_LAYER);
+            else
+                SetHidingLayerMaskRecursively(hidingPlayer.gameObject, UNHIDING_LAYER);
 
-
-        }
-        else
-        {
-            // Unhide the originator of the RPC in the world
-        }
     }
 
 
