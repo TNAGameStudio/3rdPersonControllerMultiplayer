@@ -124,6 +124,7 @@ public class Hide : NetworkBehaviour
         if(ourPlayer.playerList.TryGetValue(clientid, out Player hidingPlayer))
         {
             // TODO Handle any errors (though this is success case)
+            Debug.Log("Successfully got player with client id: " + clientid);
         } 
 
         // play animation of opposing player as they hide or unhide
@@ -133,21 +134,11 @@ public class Hide : NetworkBehaviour
 
     private void PlayHideUnhideAnimation(Player hidingPlayer, bool isHiding)
     {
-        
-
+    
         if(isHiding)
-        {
             StartCoroutine(FadeOut(hidingPlayer));
-
-        }
         else
-        {
             StartCoroutine(FadeIn(hidingPlayer));
-            
-        }
-        
-        
-
     }
 
     IEnumerator FadeOut(Player hidingPlayer)
@@ -166,16 +157,18 @@ public class Hide : NetworkBehaviour
         // transition the transparency
         for (float alpha = 1.0f; alpha >= 0; alpha -= 0.01f)
         {
-            _renderer.materials[0].SetFloat("_Progress", alpha);
-            _renderer.materials[1].SetFloat("_Progress", alpha);
-            _renderer.materials[2].SetFloat("_Progress", alpha);
+            for(int i = 0; i < _renderer.materials.Length; i++)
+            {
+                _renderer.materials[i].SetFloat("_Progress", alpha);
+            }
             yield return new WaitForSeconds(.01f);
         }
         
         // round off any inprecision
-        _renderer.materials[0].SetFloat("_Progress", 0);
-        _renderer.materials[1].SetFloat("_Progress", 0);
-        _renderer.materials[2].SetFloat("_Progress", 0);
+         for(int i = 0; i < _renderer.materials.Length; i++)
+         {
+            _renderer.materials[i].SetFloat("_Progress", 0);
+        }
     }
 
     IEnumerator FadeIn(Player hidingPlayer)
@@ -186,18 +179,21 @@ public class Hide : NetworkBehaviour
         for (float alpha = 0.0f; alpha < 1; alpha += 0.01f)
         {
 
-            Debug.Log("Alpha:" + alpha);
-            _renderer.materials[0].SetFloat("_Progress", alpha);
-            _renderer.materials[1].SetFloat("_Progress", alpha);
-            _renderer.materials[2].SetFloat("_Progress", alpha);
+             for(int i = 0; i < _renderer.materials.Length; i++)
+             {
+                _renderer.materials[i].SetFloat("_Progress", alpha);
+             }
+            
             yield return new WaitForSeconds(.01f);
         }
         
         // round off any inprecision
-        _renderer.materials[0].SetFloat("_Progress", 1);
-        _renderer.materials[1].SetFloat("_Progress", 1);
-        _renderer.materials[2].SetFloat("_Progress", 1);
-
+        
+        for(int i = 0; i < _renderer.materials.Length; i++) 
+        {
+            _renderer.materials[i].SetFloat("_Progress", 1);
+        }
+        
         //restore original shader
         for(int i = 0; i < _renderer.materials.Length; i++)
         {
