@@ -12,6 +12,7 @@ public class Hide : NetworkBehaviour
 {
      [SerializeField] Player ourPlayer;
      Renderer _renderer;
+     Renderer[] _renderers;
      private StarterAssetsInputs _input;
      bool isHiding = false;
      float HideCooldown = 3.0f; // 3 seconds
@@ -197,61 +198,75 @@ public class Hide : NetworkBehaviour
 
     IEnumerator FadeOut(Player hidingPlayer)
     {
-        Renderer _renderer = hidingPlayer.GetComponentInChildren<Renderer>();
+        _renderers = hidingPlayer.GetComponentsInChildren<Renderer>();
 
         //save original shader
-        originalShader = _renderer.materials[0].shader;
+        originalShader = _renderers[0].materials[0].shader;
         
         // assign new shader to all materials
-        for(int i = 0; i < _renderer.materials.Length; i++)
+        for(int j = 0; j < _renderers.Length; j++)
         {
-            _renderer.materials[i].shader = hideShader;
+            for(int i = 0; i < _renderers[j].materials.Length; i++)
+            {
+                _renderers[j].materials[i].shader = hideShader;
+            }
         }
 
         // transition the transparency
         for (float alpha = 1.0f; alpha >= 0; alpha -= 0.01f)
         {
-            for(int i = 0; i < _renderer.materials.Length; i++)
+            for(int j = 0; j < _renderers.Length; j++)
             {
-                _renderer.materials[i].SetFloat("_Progress", alpha);
+            
+                for(int i = 0; i < _renderers[j].materials.Length; i++)
+                {
+                    _renderers[j].materials[i].SetFloat("_Progress", alpha);
+                }
             }
-            yield return new WaitForSeconds(.01f);
-        }
-        
-        // round off any inprecision
-         for(int i = 0; i < _renderer.materials.Length; i++)
-         {
-            _renderer.materials[i].SetFloat("_Progress", 0);
-        }
-    }
-
-    IEnumerator FadeIn(Player hidingPlayer)
-    {
-        Renderer _renderer = hidingPlayer.GetComponentInChildren<Renderer>();
-
-        // transition the transparency
-        for (float alpha = 0.0f; alpha < 1; alpha += 0.01f)
-        {
-
-             for(int i = 0; i < _renderer.materials.Length; i++)
-             {
-                _renderer.materials[i].SetFloat("_Progress", alpha);
-             }
             
             yield return new WaitForSeconds(.01f);
         }
         
         // round off any inprecision
-        
-        for(int i = 0; i < _renderer.materials.Length; i++) 
+        for(int j = 0; j < _renderers.Length; j++)
         {
-            _renderer.materials[i].SetFloat("_Progress", 1);
+            for(int i = 0; i < _renderers[j].materials.Length; i++)
+            {
+                _renderers[j].materials[i].SetFloat("_Progress", 0);
+            }
+        }
+    }
+
+    IEnumerator FadeIn(Player hidingPlayer)
+    {
+        _renderers = hidingPlayer.GetComponentsInChildren<Renderer>();
+
+        // transition the transparency
+        for (float alpha = 0.0f; alpha < 1; alpha += 0.01f)
+        {
+            for(int j = 0; j < _renderers.Length; j++)
+            {
+                for(int i = 0; i < _renderers[j].materials.Length; i++)
+                {
+                    _renderers[j].materials[i].SetFloat("_Progress", alpha);
+                }
+            }
+            yield return new WaitForSeconds(.01f);
         }
         
-        //restore original shader
-        for(int i = 0; i < _renderer.materials.Length; i++)
+        // round off any inprecision
+        for(int j = 0; j < _renderers.Length; j++)
         {
-            _renderer.materials[i].shader = originalShader;
+            for(int i = 0; i < _renderers[j].materials.Length; i++) 
+            {
+                _renderers[j].materials[i].SetFloat("_Progress", 1);
+            }
+            
+            //restore original shader
+            for(int i = 0; i < _renderers[j].materials.Length; i++)
+            {
+                _renderers[j].materials[i].shader = originalShader;
+            }
         }
     }
 }
