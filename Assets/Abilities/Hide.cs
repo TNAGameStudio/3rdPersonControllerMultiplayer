@@ -4,6 +4,7 @@ using UnityEngine;
 using Unity.Netcode;
 using StarterAssets;
 using System;
+using Unity.VisualScripting;
 
 
 
@@ -16,8 +17,14 @@ public class Hide : NetworkBehaviour
      float HideCooldown = 3.0f; // 3 seconds
      bool onCooldown = false;
 
-    Shader transparent;
+    Shader hideShader;
     Shader originalShader;
+
+    private Animator _animator; // for setting the sneak/hide animation
+    private bool _hasAnimator;
+
+    [SerializeField] public Material materialNotHiding;
+    [SerializeField] private Material materialIsHiding;
 
             
      
@@ -26,37 +33,51 @@ public class Hide : NetworkBehaviour
     {
         _input = GetComponent<StarterAssetsInputs>();
         
-            //transparent = Shader.Find("Shader Graphs/Vanish"); // vanish shader
-            transparent = Shader.Find("Shader Graphs/Dissolve"); // dissolve
-            if( transparent == null)
-                Debug.Log("Could not find the vanish shader.");
+        //hideShader = Shader.Find("Shader Graphs/Vanish"); // vanish shader
+        hideShader = Shader.Find("Shader Graphs/Dissolve"); // dissolve
+        
+        // check for errors
+        if( hideShader == null)
+            Debug.Log("Could not find the vanish shader.");
+
+        // Get the animator
+        _hasAnimator = TryGetComponent(out _animator);
+
+        // check for errors
+        if(_hasAnimator == false)
+            Debug.Log("(Hide.cs) Could not find animator.");
     }
 
     void Update()
 
     {
+        // Calculate and reset cooldowns
         if(onCooldown == true)
         {
+            // decrease cooldown time
             HideCooldown -= Time.deltaTime;
 
+            // if cooldown has expired
             if(HideCooldown <= 0)
             {
-                
+                // reset cooldown
                 onCooldown = false;
                 HideCooldown = 3.0f;
             }
             else
             {
+                // return if it has not expired yet
                 return;
             }
         }
 
-        if(_input.one == true)
+        // If user has selected to go into or out of hide mode
+        if(_input.hide == true)
         {
             //set cooldown
             onCooldown = true;
             
-
+            // if hiding, unhide and vice versa
             if(isHiding == false)
             {
                 ActivateAbility();
@@ -67,16 +88,18 @@ public class Hide : NetworkBehaviour
                 DeactivateAbility(); 
                 isHiding = false;
             }
-
-            
-
         }
-
     }
 
     public void ActivateAbility()
     {
         // TODO: Show icon somewhere that it's enabled hiding
+
+        // Enable local effect on player character to show he's in sneak mode
+        HidePlayerLocally(true);
+
+        // Set the animation to sneak/hide mode
+        _animator.SetBool("Hiding", true);
 
         // send RPC to server telling other clients to hide this character
         HidePlayerServerRpc(true, OwnerClientId);
@@ -86,27 +109,57 @@ public class Hide : NetworkBehaviour
     {
         // TODO: Remove icon shows it's enabled hiding
 
+        // Enable local effect on player character to show she's no longer sneaking
+        HidePlayerLocally(false);
+
+        // Remove sneak/hide animation
+        _animator.SetBool("Hiding", false);
+
         // send RPC to server telling other clients to reveal this character
         HidePlayerServerRpc(false, OwnerClientId);
+    }
+
+    private void HidePlayerLocally(bool isHiding)
+    {
+        // grab a reference to the renderer
+        _renderer = GetComponentInChildren<Renderer>();
+
+        // error check
+        if(_renderer == null)
+        {
+            Debug.Log("Hide.cs/HidePlayerLocally(): Could not retrieve renderer");
+            return;
+        }
+
+        // set the appropriate material depending on hiding or not
+        if(isHiding)
+        {
+            _renderer.material = materialIsHiding;
+        }
+        else
+        {
+            _renderer.material = materialNotHiding;
+        }
+
+        return;
     }
 
     [ServerRpc]
     private void HidePlayerServerRpc(bool isHiding, ulong clientid)
     {
-        // If it's anyone else but the host
+        // If it's anyone else but the host then hide this player from the server user
         if(clientid != 0)
         {
-            // TODO: Hide this player from me
-
             // get player from dictionary
-            if(ourPlayer.playerList.TryGetValue(clientid, out Player hidingPlayer))
+            if(!ourPlayer.playerList.TryGetValue(clientid, out Player hidingPlayer))
             {
-                Debug.Log("Found the other player with client id: " + clientid + " going to hide them now.");
+                // Log error and return without doing anything.
+                Debug.Log("Error finding the player we're searching for...");
+                return;
             }
 
-            // play animation of opposing player as they hide or unhide
+            // play effect of opposing player disappearing as they hide or unhide
             PlayHideUnhideAnimation(hidingPlayer, isHiding);
-
         }
 
           // tell all clients to hide this client
@@ -121,10 +174,11 @@ public class Hide : NetworkBehaviour
             return;
 
     
-        if(ourPlayer.playerList.TryGetValue(clientid, out Player hidingPlayer))
+        if(!ourPlayer.playerList.TryGetValue(clientid, out Player hidingPlayer))
         {
-            // TODO Handle any errors (though this is success case)
-            Debug.Log("Successfully got player with client id: " + clientid);
+            // Handle any errors (though this is success case)
+            Debug.Log("(HidePlayerClientRPC): Could not find player with player id:" + clientid);
+            return;
         } 
 
         // play animation of opposing player as they hide or unhide
@@ -151,7 +205,7 @@ public class Hide : NetworkBehaviour
         // assign new shader to all materials
         for(int i = 0; i < _renderer.materials.Length; i++)
         {
-            _renderer.materials[i].shader = transparent;
+            _renderer.materials[i].shader = hideShader;
         }
 
         // transition the transparency
@@ -200,9 +254,4 @@ public class Hide : NetworkBehaviour
             _renderer.materials[i].shader = originalShader;
         }
     }
-
-
-
-
-
 }

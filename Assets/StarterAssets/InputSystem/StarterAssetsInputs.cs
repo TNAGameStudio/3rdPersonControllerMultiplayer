@@ -15,7 +15,7 @@ namespace StarterAssets
 		public bool jump;
 		public bool sprint;
 		public bool aim;
-		public bool one;
+		public bool hide;
 
 		[Header("Movement Settings")]
 		public bool analogMovement;
@@ -87,7 +87,7 @@ namespace StarterAssets
 
 		public void One(bool new1State)
 		{
-			one = new1State;
+			hide = new1State;
 		}
 
 		private void OnApplicationFocus(bool hasFocus)

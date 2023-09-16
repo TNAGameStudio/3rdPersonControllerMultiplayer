@@ -1547,6 +1547,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ourPlayer: {fileID: 8421178730610568435}
+  m_hide_body: {fileID: 2100000, guid: 11161db4caddb9442b7d77685c072be0, type: 2}
+  m_hide_arms: {fileID: 2100000, guid: 45d465971f4cecb439952c7346cea9e5, type: 2}
+  m_hide_legs: {fileID: 2100000, guid: 18d17ba1bb8675e4cb45391e81b89aa4, type: 2}
+  m_unhide_body: {fileID: 2100000, guid: 43714b68324cc2c409d534d9874f2a2b, type: 2}
+  m_unhide_arms: {fileID: 2100000, guid: 766fd3ff04aab4745a764d33daac86fa, type: 2}
+  m_unhide_legs: {fileID: 2100000, guid: 8b25e99361ac31d4e9ae83c46aee69ea, type: 2}
 --- !u!1 &4523139366846529165
 GameObject:
   m_ObjectHideFlags: 0
