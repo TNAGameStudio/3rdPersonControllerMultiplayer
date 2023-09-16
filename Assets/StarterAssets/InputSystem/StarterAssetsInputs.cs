@@ -17,6 +17,8 @@ namespace StarterAssets
 		public bool aim;
 		public bool hide;
 
+		public bool shoot;
+
 		[Header("Movement Settings")]
 		public bool analogMovement;
 
@@ -53,6 +55,11 @@ namespace StarterAssets
 			Aim(value.isPressed);
 		}
 
+		public void OnShoot(InputValue value)
+		{
+			ShootInput(value.isPressed);
+		}
+
 		public void OnOne(InputValue value) 
 		{
  			One(value.isPressed);
@@ -83,6 +90,11 @@ namespace StarterAssets
 		public void Aim(bool newAimState)
 		{
 			aim = newAimState;
+		}
+
+		public void ShootInput(bool newShootState)
+		{
+			shoot = newShootState;
 		}
 
 		public void One(bool new1State)

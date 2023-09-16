@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp", "Assembly
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp-Editor", "Assembly-CSharp-Editor.csproj", "{EC8FB597-E791-990D-75E0-4BD96487E044}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OccaSoftware.Crosshairs.Editor", "OccaSoftware.Crosshairs.Editor.csproj", "{BF053363-CEEA-F8BD-EEA3-B7975CF6AD12}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +21,10 @@ Global
 		{EC8FB597-E791-990D-75E0-4BD96487E044}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EC8FB597-E791-990D-75E0-4BD96487E044}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC8FB597-E791-990D-75E0-4BD96487E044}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF053363-CEEA-F8BD-EEA3-B7975CF6AD12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF053363-CEEA-F8BD-EEA3-B7975CF6AD12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF053363-CEEA-F8BD-EEA3-B7975CF6AD12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF053363-CEEA-F8BD-EEA3-B7975CF6AD12}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -13,6 +13,7 @@ public class Player : NetworkBehaviour
 {
 
     [SerializeField] private CinemachineVirtualCamera followCam;
+    [SerializeField] private CinemachineVirtualCamera aimCam;
     [SerializeField] private int ownerPriority = 15;
     [SerializeField] private PlayerInput playerInput;
 
@@ -22,7 +23,7 @@ public class Player : NetworkBehaviour
     {
         if(IsOwner)
         {
-            followCam.Priority = ownerPriority;
+            followCam.gameObject.SetActive(true);
             playerInput.enabled = true;
         }
 

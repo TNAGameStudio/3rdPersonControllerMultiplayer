@@ -2,7 +2,9 @@
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
-#if ENABLE_INPUT_SYSTEM 
+using Cinemachine;
+
+#if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
 
@@ -113,6 +115,12 @@ namespace StarterAssets
 
         private bool _hasAnimator;
 
+        [SerializeField] private Transform pfBulletProjectileClient;
+        [SerializeField] private Transform pfBulletProjectileServer;
+        [SerializeField] private Transform spawnBulletPosition;
+        [SerializeField] private CinemachineVirtualCamera aimVirtualCamera;
+
+
 
 
         private bool IsCurrentDeviceMouse
@@ -220,6 +228,8 @@ namespace StarterAssets
 
         private void Move()
         {
+            Vector3 gunAimDirection = Vector3.zero;
+
             // set target speed based on move speed, sprint speed and if sprint is pressed
             float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
 
@@ -261,14 +271,24 @@ namespace StarterAssets
             // A Gregorian: If the player is aiming do not rotate the character based on keys, but based on where the mouse is aiming
             if(_input.aim)
             {
+                // enable the aim camera
+                aimVirtualCamera.gameObject.SetActive(true);
+
                 Vector3 aimDirection = Vector3.zero;
                 Vector2 screenCenterPoint = new Vector2(Screen.width / 2f, Screen.height/2f);
                 Ray ray = Camera.main.ScreenPointToRay(screenCenterPoint);
 
                 // Don't look up and down just yet
                 aimDirection = ray.direction;
+                gunAimDirection = aimDirection;
                 aimDirection.y = 0;
                 transform.forward = Vector3.Lerp(transform.forward, aimDirection, Time.deltaTime * 20f);
+            }
+            else
+            {
+                //disable the aim camera
+                aimVirtualCamera.gameObject.SetActive(false);
+
             }
             // note: Vector2's != operator uses approximation so is not floating point error prone, and is cheaper than magnitude
             // if there is a move input rotate player when the player is moving
@@ -308,12 +328,46 @@ namespace StarterAssets
                                 new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
             }
 
+            if( _input.shoot)
+            {
+                // spawn the dummy client side projectile
+                if(!IsServer)
+                    Instantiate(pfBulletProjectileClient, spawnBulletPosition.position, Quaternion.LookRotation(gunAimDirection, Vector3.up));
+
+                // Tell the server to shoot the projectile
+                ShootProjectileServerRpc(spawnBulletPosition.position, gunAimDirection);
+                
+                //  shoot single bullet at a time for now
+                _input.shoot = false; 
+            }
+
             // update animator if using character
             if (_hasAnimator)
             {
                 _animator.SetFloat(_animIDSpeed, _animationBlend);
                 _animator.SetFloat(_animIDMotionSpeed, inputMagnitude);
             }
+        }
+
+        [ServerRpc]
+        private void ShootProjectileServerRpc(Vector3 spawnPos, Vector3 direction)
+        {
+            Instantiate(pfBulletProjectileClient, spawnPos, Quaternion.LookRotation(direction, Vector3.up));
+
+            ShootProjectileClientRpc(spawnPos, direction);
+        }
+
+        [ClientRpc]
+        private void ShootProjectileClientRpc(Vector3 spawnPos, Vector3 direction)
+        {
+            // originator of projectile already produced a dummy projectile so doesn't need another one.
+            if(IsOwner) 
+                return;
+
+            if(IsServer)
+                return;
+
+            Instantiate(pfBulletProjectileClient, spawnPos, Quaternion.LookRotation(direction, Vector3.up));
         }
 
         private void JumpAndGravity()
