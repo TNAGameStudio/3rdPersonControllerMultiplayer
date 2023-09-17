@@ -11,11 +11,8 @@ public class BulletProjectile : MonoBehaviour
     }
 
     void Start() {
-
-        Debug.Log("ELDJKFLDJFLD:FJ:DLF");
-        float speed = 10f;
+        float speed = 50f;
         bulletRigidbody.velocity = transform.forward * speed;
-    Debug.Log("Vector:" + transform.forward +  " and speed " + speed);
     }
 
     private void OnTriggerEnter(Collider other)

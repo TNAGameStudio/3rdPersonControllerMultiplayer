@@ -117,8 +117,12 @@ namespace StarterAssets
 
         [SerializeField] private Transform pfBulletProjectileClient;
         [SerializeField] private Transform pfBulletProjectileServer;
+        [SerializeField] private Transform pfMuzzleFlash;
+        [SerializeField] private Transform muzzleFlashHolder;
         [SerializeField] private Transform spawnBulletPosition;
         [SerializeField] private CinemachineVirtualCamera aimVirtualCamera;
+        [SerializeField] private LayerMask aimColliderLayerMask = new LayerMask();
+
 
 
 
@@ -229,6 +233,9 @@ namespace StarterAssets
         private void Move()
         {
             Vector3 gunAimDirection = Vector3.zero;
+            Vector3 aimDirection = Vector3.zero;
+            Ray ray;
+
 
             // set target speed based on move speed, sprint speed and if sprint is pressed
             float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
@@ -268,15 +275,20 @@ namespace StarterAssets
             // normalise input direction
             Vector3 inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
 
+            aimDirection = Vector3.zero;
+            Vector2 screenCenterPoint = new Vector2(Screen.width / 2f, Screen.height/2f);
+            ray = Camera.main.ScreenPointToRay(screenCenterPoint);
+
             // A Gregorian: If the player is aiming do not rotate the character based on keys, but based on where the mouse is aiming
             if(_input.aim)
             {
                 // enable the aim camera
                 aimVirtualCamera.gameObject.SetActive(true);
 
-                Vector3 aimDirection = Vector3.zero;
-                Vector2 screenCenterPoint = new Vector2(Screen.width / 2f, Screen.height/2f);
-                Ray ray = Camera.main.ScreenPointToRay(screenCenterPoint);
+                // transition animation to aiming
+                _animator.SetBool("Aiming", true);
+
+
 
                 // Don't look up and down just yet
                 aimDirection = ray.direction;
@@ -286,6 +298,9 @@ namespace StarterAssets
             }
             else
             {
+                // Transition animation to not aiming
+                _animator.SetBool("Aiming", false);
+
                 //disable the aim camera
                 aimVirtualCamera.gameObject.SetActive(false);
 
@@ -309,11 +324,7 @@ namespace StarterAssets
             else if (_input.move != Vector2.zero)
             {
 
-
-
                 transform.forward = Quaternion.Euler(0.0f, Time.deltaTime*300.0f*inputDirection.x, 0.0f) * transform.forward;
-
-                                            
 
                 _controller.Move(transform.forward  * _input.move.y* (_speed * Time.deltaTime) +
                                 new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
@@ -322,7 +333,6 @@ namespace StarterAssets
             
                 Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
-
                 // move the player
                 _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) +
                                 new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
@@ -330,9 +340,20 @@ namespace StarterAssets
 
             if( _input.shoot)
             {
+                if(Physics.Raycast(ray, out RaycastHit raycastHit, 999f, aimColliderLayerMask)) {
+                    Vector3 worldAimTarget = raycastHit.point;
+                    
+                    gunAimDirection = (worldAimTarget - spawnBulletPosition.position).normalized;
+                }
+
                 // spawn the dummy client side projectile
-                if(!IsServer)
+                if(!IsServer) {
+                    // instantiate bullet
                     Instantiate(pfBulletProjectileClient, spawnBulletPosition.position, Quaternion.LookRotation(gunAimDirection, Vector3.up));
+
+                    // instantiate muzzle flash
+                    Instantiate(pfMuzzleFlash, spawnBulletPosition.position, Quaternion.LookRotation(muzzleFlashHolder.transform.forward, Vector3.up), muzzleFlashHolder);
+                }
 
                 // Tell the server to shoot the projectile
                 ShootProjectileServerRpc(spawnBulletPosition.position, gunAimDirection);
@@ -352,7 +373,12 @@ namespace StarterAssets
         [ServerRpc]
         private void ShootProjectileServerRpc(Vector3 spawnPos, Vector3 direction)
         {
+            // instantiate bullet on server
             Instantiate(pfBulletProjectileClient, spawnPos, Quaternion.LookRotation(direction, Vector3.up));
+
+            // instantiate the flash on the server
+            Instantiate(pfMuzzleFlash, spawnPos, Quaternion.LookRotation(muzzleFlashHolder.transform.forward, Vector3.up), muzzleFlashHolder);
+
 
             ShootProjectileClientRpc(spawnPos, direction);
         }
@@ -368,6 +394,8 @@ namespace StarterAssets
                 return;
 
             Instantiate(pfBulletProjectileClient, spawnPos, Quaternion.LookRotation(direction, Vector3.up));
+            Instantiate(pfMuzzleFlash, spawnPos, Quaternion.LookRotation(muzzleFlashHolder.transform.forward, Vector3.up), muzzleFlashHolder);
+
         }
 
         private void JumpAndGravity()
