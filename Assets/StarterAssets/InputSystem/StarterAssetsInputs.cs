@@ -16,8 +16,10 @@ namespace StarterAssets
 		public bool sprint;
 		public bool aim;
 		public bool hide;
+        public bool fireball;
 
-		public bool shoot;
+
+        public bool shoot;
 
 		[Header("Movement Settings")]
 		public bool analogMovement;
@@ -64,6 +66,11 @@ namespace StarterAssets
 		{
  			One(value.isPressed);
 		}
+
+		public void OnTwo(InputValue value)
+		{
+			Two(value.isPressed);
+		}
 #endif
 
 
@@ -102,7 +109,11 @@ namespace StarterAssets
 			hide = new1State;
 		}
 
-		private void OnApplicationFocus(bool hasFocus)
+        public void Two(bool new2State)
+        {
+            fireball = new2State;
+        }
+        private void OnApplicationFocus(bool hasFocus)
 		{
 			SetCursorState(cursorLocked);
 		}
