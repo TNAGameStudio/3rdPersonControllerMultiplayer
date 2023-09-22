@@ -5,6 +5,9 @@ TagManager:
   serializedVersion: 2
   tags:
   - CinemachineTarget
+  - LeftHand
+  - RightHand
+  - PlayerName
   layers:
   - Default
   - TransparentFX

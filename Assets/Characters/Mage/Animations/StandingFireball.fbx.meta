@@ -65,38 +65,6 @@ ModelImporter:
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
-      - time: 0.71750003
-        functionName: EndCast
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: 062bd64819d898a40920b30337551264,
-          type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.31730768
-        functionName: TriggerTest
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: 062bd64819d898a40920b30337551264,
-          type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.31730768
-        functionName: TriggerTest
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: 062bd64819d898a40920b30337551264,
-          type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.20192307
-        functionName: TriggerTest
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: 062bd64819d898a40920b30337551264,
-          type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}

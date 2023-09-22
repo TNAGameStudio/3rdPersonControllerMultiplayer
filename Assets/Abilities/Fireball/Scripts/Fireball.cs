@@ -15,8 +15,6 @@ public class Fireball : NetworkBehaviour
     [SerializeField] public Player ourPlayer;
     [SerializeField] public GameObject clientFireballPrefab;
     [SerializeField] public GameObject serverFireballPrefab;
-    [SerializeField] public Transform leftHandTransform;
-    [SerializeField] public Transform rightHandTransform;
 
     [Header("Parameters")]
     [SerializeField] public float initalVelocity = 10.0f;
@@ -32,6 +30,9 @@ public class Fireball : NetworkBehaviour
     private GameObject clientFireball;
     private GameObject serverFireball;
 
+    private Transform leftHandTransform;
+    private Transform rightHandTransform;
+
 
     // Start is called before the first frame update
     void Start()
@@ -44,6 +45,15 @@ public class Fireball : NetworkBehaviour
         // check for errors
         if(_hasAnimator == false)
             Debug.Log("(Fireball.cs) Could not find animator.");
+
+        leftHandTransform = HelperFunctions.FindObjectWithTag(transform, "LeftHand").transform;
+        rightHandTransform = HelperFunctions.FindObjectWithTag(transform, "RightHand").transform;
+
+        if(!leftHandTransform || !rightHandTransform)
+        {
+            Debug.Log("Fireball.cs could not find left or right hand transform.  need to tag them in the model");
+        }
+
     }
 
     void Update()
@@ -118,12 +128,6 @@ public class Fireball : NetworkBehaviour
         //launch our fireball
         ShootDummyFireball(fireballPosition, fireballDirection);
      }
-
-    //not sure if it's used anymore, including in the commit so as not to break anything
-    public void EndCast()
-    {
-        _animator.SetBool("CastingFireball", false);
-    }
 
     private void SpawnDummyFireball()
     {
