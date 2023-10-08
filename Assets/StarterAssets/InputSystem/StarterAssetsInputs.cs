@@ -17,6 +17,7 @@ namespace StarterAssets
 		public bool aim;
 		public bool hide;
         public bool fireball;
+		public bool aoe;
 
 
         public bool shoot;
@@ -71,10 +72,15 @@ namespace StarterAssets
 		{
 			Two(value.isPressed);
 		}
+
+        public void OnThree(InputValue value)
+        {
+            Three(value.isPressed);
+        }
 #endif
 
 
-		public void MoveInput(Vector2 newMoveDirection)
+        public void MoveInput(Vector2 newMoveDirection)
 		{
 			move = newMoveDirection;
 		} 
@@ -113,6 +119,13 @@ namespace StarterAssets
         {
             fireball = new2State;
         }
+
+        public void Three(bool new3State)
+        {
+			Debug.Log("THREE CALLED: " + new3State);
+            aoe = new3State;
+        }
+
         private void OnApplicationFocus(bool hasFocus)
 		{
 			SetCursorState(cursorLocked);

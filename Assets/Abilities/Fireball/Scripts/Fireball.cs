@@ -9,6 +9,7 @@ using Unity.Netcode.Components;
 using UnityEngine.UIElements;
 using TMPro;
 
+
 public class Fireball : NetworkBehaviour
 {
     [Header("References")]
@@ -17,12 +18,12 @@ public class Fireball : NetworkBehaviour
     [SerializeField] public GameObject serverFireballPrefab;
 
     [Header("Parameters")]
-    [SerializeField] public float initalVelocity = 10.0f;
+    [SerializeField] public float initalVelocity = 25.0f;
     [SerializeField] float cooldown = 3.0f; // 3 seconds
 
 
     private StarterAssetsInputs _input;
-    private bool onCooldown = false;
+   
 
     private Animator _animator; // for setting the sneak/hide animation
     private bool _hasAnimator;
@@ -33,10 +34,44 @@ public class Fireball : NetworkBehaviour
     private Transform leftHandTransform;
     private Transform rightHandTransform;
 
+    private ManagedCooldown cooldownManager;
+    private PlayerCombatStateMachiene CombatStateMachiene;
 
+    /*
     // Start is called before the first frame update
+    void OnEnterCastState(string state)
+    {
+
+    }
+
+    void OnExitCastState(string state)
+    {
+
+    }
+
+    //attaching to animation state allows the clients to start vfx
+    void OnCastAnimationStateEnter()
+    {
+        SpawnDummyFireball();
+    }
+
+    void OnCastAnimationStateExit()
+    {
+
+    }
+
     void Start()
     {
+        PlayerCombatStateMachiene.PlayerCombatState interruptableCast = new PlayerCombatStateMachiene.PlayerCombatState();
+        interruptableCast.name = "fireball_cast";
+        interruptableCast.transationalMovementAllowed = true;
+        interruptableCast.rotationalMovementAllowed = true;
+        interruptableCast.interruptableWithMovement = true;
+        interruptableCast.interruptableWithEscape = true;
+        interruptableCast.OnEnterState = OnEnterCastState;
+        interruptableCast.OnExitState = OnExitCastState;
+        CombatStateMachiene.AddState(interruptableCast);
+      
         _input = GetComponent<StarterAssetsInputs>();
         
         // Get the animator
@@ -48,8 +83,8 @@ public class Fireball : NetworkBehaviour
 
         leftHandTransform = HelperFunctions.FindObjectWithTag(transform, "LeftHand").transform;
         rightHandTransform = HelperFunctions.FindObjectWithTag(transform, "RightHand").transform;
-
-        if(!leftHandTransform || !rightHandTransform)
+        CombatStateMachiene = GetComponent<PlayerCombatStateMachiene>();
+        if (!leftHandTransform || !rightHandTransform)
         {
             Debug.Log("Fireball.cs could not find left or right hand transform.  need to tag them in the model");
         }
@@ -96,6 +131,11 @@ public class Fireball : NetworkBehaviour
     public void ClientStartCast()
     {
         Debug.Log("Cleint Start Cast");
+        if(!CombatStateMachiene.ChangeState("cast_fireball"))
+        {
+            Debug.Log("Unable to change state");
+            return;
+        }
 
         //tell server we started casting
         SpawnFireballServerRpc();
@@ -237,4 +277,5 @@ public class Fireball : NetworkBehaviour
         //launch fireball
         ShootDummyFireball(Position, Direction);
     }
+    */
 }

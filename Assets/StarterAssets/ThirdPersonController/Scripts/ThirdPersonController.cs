@@ -123,6 +123,8 @@ namespace StarterAssets
         [SerializeField] private CinemachineVirtualCamera aimVirtualCamera;
         [SerializeField] private LayerMask aimColliderLayerMask = new LayerMask();
 
+        private PlayerCombatStateMachiene combatStateMachiene;
+
 
 
 
@@ -167,6 +169,8 @@ namespace StarterAssets
             // reset our timeouts on start
             _jumpTimeoutDelta = JumpTimeout;
             _fallTimeoutDelta = FallTimeout;
+
+            combatStateMachiene = GetComponent<PlayerCombatStateMachiene>();
         }
 
         private void Update()
@@ -175,6 +179,7 @@ namespace StarterAssets
 
             _hasAnimator = TryGetComponent(out _animator);
 
+            StateMachieneChecks();
             JumpAndGravity();
             GroundedCheck();
             Move();
@@ -192,6 +197,27 @@ namespace StarterAssets
             _animIDJump = Animator.StringToHash("Jump");
             _animIDFreeFall = Animator.StringToHash("FreeFall");
             _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
+        }
+
+        private void StateMachieneChecks()
+        {
+            
+            PlayerCombatStateMachiene.PlayerCombatState combatState = combatStateMachiene.GetCurrentState();
+            //cut off translational movement if it's not allowed
+            if (!combatState.translationalMovementAllowed)
+            {
+                _input.move.y = 0;
+                _input.jump = false;
+            }
+
+            //if we are in a state interruptable by movement and we have movemnt, interrupt the state
+            if (combatState.interruptableWithTranslationalMovement)
+            {
+                if (_input.move.x > 0 || _input.jump)
+                {
+                    combatStateMachiene.ChangeToDefaultState();
+                }
+            }
         }
 
         private void GroundedCheck()
@@ -340,6 +366,8 @@ namespace StarterAssets
 
             if( _input.shoot)
             {
+                _input.shoot = false;
+                return;
                 if(Physics.Raycast(ray, out RaycastHit raycastHit, 999f, aimColliderLayerMask)) {
                     Vector3 worldAimTarget = raycastHit.point;
                     

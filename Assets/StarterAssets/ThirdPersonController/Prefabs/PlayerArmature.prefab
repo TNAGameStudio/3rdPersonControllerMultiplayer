@@ -1468,6 +1468,10 @@ GameObject:
   - component: {fileID: 4494171870847078822}
   - component: {fileID: -3010792767648958768}
   - component: {fileID: 4251743239271675173}
+  - component: {fileID: 2707015144892470860}
+  - component: {fileID: 3669285204840648065}
+  - component: {fileID: 8340660074397440576}
+  - component: {fileID: 1121417060020952465}
   m_Layer: 8
   m_Name: PlayerArmature
   m_TagString: Player
@@ -1495,6 +1499,7 @@ Transform:
   - {fileID: 2482421543759685304}
   - {fileID: 2789498551919841957}
   - {fileID: 7855562865817437759}
+  - {fileID: 4571152729744820706}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &6982812146204527121
@@ -1636,6 +1641,7 @@ MonoBehaviour:
   aim: 0
   hide: 0
   fireball: 0
+  aoe: 0
   shoot: 0
   analogMovement: 0
   cursorLocked: 1
@@ -1869,6 +1875,64 @@ MonoBehaviour:
     type: 3}
   initalVelocity: 25
   cooldown: 3
+--- !u!114 &2707015144892470860
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4416926081852918481}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22eb8cd3a4ed45d41b9472bf9b203700, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clientAOEPrefab: {fileID: 2909498958030300425, guid: 214d424a911180e4a81827a3050d32cb,
+    type: 3}
+  clientCharacterEffectPrefab: {fileID: 4027000339746706482, guid: e71732f7ccca9d14d9b3432d4ddaa4a8,
+    type: 3}
+  clientAOEPlacement: {fileID: 2245308015008773278, guid: 08ed3d205838de54598bb43db6d6fa8d,
+    type: 3}
+  damagePerTick: 10
+  timePerTick: 0.5
+  numTicks: 6
+  cooldown: 5
+--- !u!114 &3669285204840648065
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4416926081852918481}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ed1324615dfdd84c9d0b76c1ae8b464, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &8340660074397440576
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4416926081852918481}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39b9d194e1d0c1548a360347247ae51d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1121417060020952465
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4416926081852918481}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81425d6f25bbc1148b126d362b0f7e29, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4470194573808518117
 GameObject:
   m_ObjectHideFlags: 0
@@ -2669,6 +2733,37 @@ Transform:
   m_Children:
   - {fileID: 2106802306824654203}
   m_Father: {fileID: 8626512282341172403}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &7261347987300265371
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4571152729744820706}
+  m_Layer: 0
+  m_Name: SimpleAOEDamageSphere
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4571152729744820706
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7261347987300265371}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.1402474, y: 2.8802354, z: -0.87941825}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3893294197879345259}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7367493597718985424
 GameObject:
