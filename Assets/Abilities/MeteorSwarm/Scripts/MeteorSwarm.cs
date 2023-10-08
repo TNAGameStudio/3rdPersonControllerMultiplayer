@@ -5,7 +5,6 @@ using System.Globalization;
 using Unity.Netcode;
 using Unity.VisualScripting;
 using UnityEngine;
-using static PlayerCombatStateMachiene;
 
 public class MeteorSwarm : NetworkBehaviour
 {
@@ -20,10 +19,9 @@ public class MeteorSwarm : NetworkBehaviour
     [SerializeField] int numTicks = 6;
     [SerializeField] float cooldown = 30.0f;
 
-
-    ManagedCooldown meteorSwarmCooldown;
+    ManagedCooldown cooldownManager;
     AOETargeting meteorSwarmTargeting;
-    private PlayerCombatStateMachiene CombatStateMachiene;
+    private PlayerCombatStateMachine CombatStateMachine;
 
     private StarterAssetsInputs _input;
 
@@ -42,8 +40,8 @@ public class MeteorSwarm : NetworkBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        CombatStateMachiene = GetComponent<PlayerCombatStateMachiene>();
-        PlayerCombatState aoePlacement = new PlayerCombatState();
+        CombatStateMachine = GetComponent<PlayerCombatStateMachine>();
+        PlayerCombatStateMachine.PlayerCombatState aoePlacement = new PlayerCombatStateMachine.PlayerCombatState();
         aoePlacement.name = meteorSwarmPlacement;
         aoePlacement.translationalMovementAllowed = true;
         aoePlacement.interruptableWithTranslationalMovement = false;
@@ -51,16 +49,16 @@ public class MeteorSwarm : NetworkBehaviour
         aoePlacement.OnEnterState = OnEnterTargetingState;
         aoePlacement.OnExitState = OnExitTargetingState;
 
-        CombatStateMachiene.AddState(aoePlacement);
+        CombatStateMachine.AddState(aoePlacement);
 
-        PlayerCombatState nonInterruptableCast = new PlayerCombatState();
+        PlayerCombatStateMachine.PlayerCombatState nonInterruptableCast = new PlayerCombatStateMachine.PlayerCombatState();
         nonInterruptableCast.name = meteorSwarmSpell;
         nonInterruptableCast.translationalMovementAllowed = false;
         nonInterruptableCast.interruptableWithTranslationalMovement = false;
         nonInterruptableCast.interruptableWithEscape = true;
         nonInterruptableCast.OnEnterState = OnEnterCastState;
         nonInterruptableCast.OnExitState = OnExitCastState;
-        CombatStateMachiene.AddState(nonInterruptableCast);
+        CombatStateMachine.AddState(nonInterruptableCast);
 
         _input = GetComponent<StarterAssetsInputs>();
 
@@ -80,13 +78,13 @@ public class MeteorSwarm : NetworkBehaviour
         }
 
         meteorSwarmTargeting = GetComponent<AOETargeting>();
-        cooldownId = meteorSwarmCooldown.GetCooldownId(meteorSwarmSpell);
+        cooldownId = cooldownManager.GetCooldownId(meteorSwarmSpell);
     }
 
     public override void OnNetworkSpawn()
     {
-        meteorSwarmCooldown = GetComponent<ManagedCooldown>();
-        meteorSwarmCooldown.SetCooldown(meteorSwarmSpell, cooldown);
+        cooldownManager = GetComponent<ManagedCooldown>();
+        cooldownManager.SetCooldown(meteorSwarmSpell, cooldown);
     }
 
     public override void OnNetworkDespawn()
@@ -95,8 +93,7 @@ public class MeteorSwarm : NetworkBehaviour
     }
     void OnEnterCastState(string state)
     {
-        Debug.Log("ON ENTER CAST STATE");
-        if (meteorSwarmCooldown.OnCooldown(cooldownId))
+        if (cooldownManager.OnCooldown(cooldownId))
         {
             //this should never happen.
             Debug.LogError("meteor swarm casting state entered while spell on cooldown");
@@ -107,7 +104,6 @@ public class MeteorSwarm : NetworkBehaviour
 
     void OnExitCastState(string state)
     {
-        Debug.Log("ON EXIT CAST STATE");
         _animator.SetBool("CastingMeteorSwarm", false);
         abilityActive = false;
     }
@@ -115,17 +111,13 @@ public class MeteorSwarm : NetworkBehaviour
     //these
     void OnEnterTargetingState(string state)
     {
-        Debug.Log("On Targeting Enter State");
         meteorSwarmTargeting.Activate(clientAOEPlacement);
     }
 
     void OnExitTargetingState(string state)
     {
-        Debug.Log("On exit targeting state");
-
         meteorSwarmTargeting.Deactivate();
 
-        Debug.Log("OnTargetingStateExit: " + state);
         if (state != meteorSwarmSpell)
         {
             abilityActive = false;
@@ -140,8 +132,7 @@ public class MeteorSwarm : NetworkBehaviour
         }
 
         abilityActive = true;
-        Debug.Log("ENTERING AOE PLACEMENT STATE");
-        CombatStateMachiene.ChangeState(meteorSwarmPlacement);
+        CombatStateMachine.ChangeState(meteorSwarmPlacement);
     }
     void DeactivateAbility()
     {
@@ -151,20 +142,21 @@ public class MeteorSwarm : NetworkBehaviour
         }
 
         abilityActive = false;
-        CombatStateMachiene.ChangeToDefaultState();
+        CombatStateMachine.ChangeToDefaultState();
     }
 
     [ServerRpc]
     void CastMeteorSwarmServerRpc(Vector3 position, Vector3 orientation)
     {
         //check cooldown
-        if (meteorSwarmCooldown.OnCooldown(cooldownId))
+        if (cooldownManager.OnCooldown(cooldownId))
         {
             Debug.LogError("Server is on cooldown");
             return;
         }
-        meteorSwarmCooldown.ConsumeCooldown(cooldownId);
+        cooldownManager.ConsumeCooldown(cooldownId);
         CastMeteorSwarmClientRpc(position, orientation);
+        //TODO: Add damage
         //SpawnServerDamageOrb();
     }
 
@@ -189,7 +181,7 @@ public class MeteorSwarm : NetworkBehaviour
             return;
         }
 
-        if(meteorSwarmCooldown.OnCooldown(cooldownId))
+        if(cooldownManager.OnCooldown(cooldownId))
         {
             return;
         }
@@ -202,7 +194,7 @@ public class MeteorSwarm : NetworkBehaviour
             //Pool for left click
             if (Input.GetMouseButtonDown(0))
             {
-                CombatStateMachiene.ChangeState(meteorSwarmSpell);
+                CombatStateMachine.ChangeState(meteorSwarmSpell);
             }
 
         }
@@ -217,9 +209,15 @@ public class MeteorSwarm : NetworkBehaviour
 
     }
 
+    //animation event triggers this
     public void CastSpell()
     {
         if(!IsOwner)
+        {
+            return;
+        }
+
+        if (!CombatStateMachine.IsInState(meteorSwarmSpell))
         {
             return;
         }

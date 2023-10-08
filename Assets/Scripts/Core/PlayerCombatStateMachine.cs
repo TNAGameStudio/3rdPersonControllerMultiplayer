@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem.LowLevel;
 
-public class PlayerCombatStateMachiene : MonoBehaviour
+public class PlayerCombatStateMachine : MonoBehaviour
 {
     public delegate void EnterStateEvent(string state);
     public delegate void ExitStateEvent(string state);
@@ -98,6 +98,11 @@ public class PlayerCombatStateMachiene : MonoBehaviour
     public PlayerCombatState GetCurrentState() 
     {
         return CurrentState;
+    }
+
+    public bool IsInState(string stateName)
+    {
+        return CurrentState.name == stateName;
     }
 
     public bool ChangeToDefaultState()

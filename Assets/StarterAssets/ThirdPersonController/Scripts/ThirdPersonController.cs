@@ -123,7 +123,7 @@ namespace StarterAssets
         [SerializeField] private CinemachineVirtualCamera aimVirtualCamera;
         [SerializeField] private LayerMask aimColliderLayerMask = new LayerMask();
 
-        private PlayerCombatStateMachiene combatStateMachiene;
+        private PlayerCombatStateMachine combatStateMachine;
 
 
 
@@ -170,7 +170,7 @@ namespace StarterAssets
             _jumpTimeoutDelta = JumpTimeout;
             _fallTimeoutDelta = FallTimeout;
 
-            combatStateMachiene = GetComponent<PlayerCombatStateMachiene>();
+            combatStateMachine = GetComponent<PlayerCombatStateMachine>();
         }
 
         private void Update()
@@ -179,7 +179,7 @@ namespace StarterAssets
 
             _hasAnimator = TryGetComponent(out _animator);
 
-            StateMachieneChecks();
+            StateMachineChecks();
             JumpAndGravity();
             GroundedCheck();
             Move();
@@ -199,10 +199,10 @@ namespace StarterAssets
             _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
         }
 
-        private void StateMachieneChecks()
+        private void StateMachineChecks()
         {
             
-            PlayerCombatStateMachiene.PlayerCombatState combatState = combatStateMachiene.GetCurrentState();
+            PlayerCombatStateMachine.PlayerCombatState combatState = combatStateMachine.GetCurrentState();
             //cut off translational movement if it's not allowed
             if (!combatState.translationalMovementAllowed)
             {
@@ -213,9 +213,9 @@ namespace StarterAssets
             //if we are in a state interruptable by movement and we have movemnt, interrupt the state
             if (combatState.interruptableWithTranslationalMovement)
             {
-                if (_input.move.x > 0 || _input.jump)
+                if (_input.move.y > 0 || _input.jump)
                 {
-                    combatStateMachiene.ChangeToDefaultState();
+                    combatStateMachine.ChangeToDefaultState();
                 }
             }
         }

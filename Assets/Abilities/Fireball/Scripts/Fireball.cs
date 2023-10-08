@@ -35,42 +35,31 @@ public class Fireball : NetworkBehaviour
     private Transform rightHandTransform;
 
     private ManagedCooldown cooldownManager;
-    private PlayerCombatStateMachiene CombatStateMachiene;
+    private PlayerCombatStateMachine CombatStateMachine;
 
-    /*
+    const string fireballSpell = "fireball";
+    private int cooldownId = 0;
+
+
+    //this is called before start on network spawned objects
+    public override void OnNetworkSpawn()
+    {
+        cooldownManager = GetComponent<ManagedCooldown>();
+        cooldownManager.SetCooldown(fireballSpell, cooldown);
+    }
+
     // Start is called before the first frame update
-    void OnEnterCastState(string state)
-    {
-
-    }
-
-    void OnExitCastState(string state)
-    {
-
-    }
-
-    //attaching to animation state allows the clients to start vfx
-    void OnCastAnimationStateEnter()
-    {
-        SpawnDummyFireball();
-    }
-
-    void OnCastAnimationStateExit()
-    {
-
-    }
-
     void Start()
     {
-        PlayerCombatStateMachiene.PlayerCombatState interruptableCast = new PlayerCombatStateMachiene.PlayerCombatState();
-        interruptableCast.name = "fireball_cast";
-        interruptableCast.transationalMovementAllowed = true;
-        interruptableCast.rotationalMovementAllowed = true;
-        interruptableCast.interruptableWithMovement = true;
+        CombatStateMachine = GetComponent<PlayerCombatStateMachine>();
+        PlayerCombatStateMachine.PlayerCombatState interruptableCast = new PlayerCombatStateMachine.PlayerCombatState();
+        interruptableCast.name = fireballSpell;
+        interruptableCast.translationalMovementAllowed = true;
+        interruptableCast.interruptableWithTranslationalMovement = true;
         interruptableCast.interruptableWithEscape = true;
         interruptableCast.OnEnterState = OnEnterCastState;
         interruptableCast.OnExitState = OnExitCastState;
-        CombatStateMachiene.AddState(interruptableCast);
+        CombatStateMachine.AddState(interruptableCast);
       
         _input = GetComponent<StarterAssetsInputs>();
         
@@ -83,14 +72,14 @@ public class Fireball : NetworkBehaviour
 
         leftHandTransform = HelperFunctions.FindObjectWithTag(transform, "LeftHand").transform;
         rightHandTransform = HelperFunctions.FindObjectWithTag(transform, "RightHand").transform;
-        CombatStateMachiene = GetComponent<PlayerCombatStateMachiene>();
+        CombatStateMachine = GetComponent<PlayerCombatStateMachine>();
         if (!leftHandTransform || !rightHandTransform)
         {
             Debug.Log("Fireball.cs could not find left or right hand transform.  need to tag them in the model");
         }
 
     }
-
+    
     void Update()
     {
         if(!IsOwner) 
@@ -98,50 +87,17 @@ public class Fireball : NetworkBehaviour
             return;  
         }
 
-        // Calculate and reset cooldowns
-        if(onCooldown == true)
+        if (cooldownManager.OnCooldown(cooldownId))
         {
-            // decrease cooldown time
-            cooldown -= Time.deltaTime;
-
-            // if cooldown has expired
-            if(cooldown <= 0)
-            {
-                // reset cooldown
-                onCooldown = false;
-                cooldown = 3.0f;
-            }
-            else
-            {
-                // return if it has not expired yet
-                return;
-            }
-        }
-
-        // If user has selected to go into or out of hide mode
-        if(_input.fireball == true)
-        {
-            ClientStartCast();
-
-            //set cooldown
-            onCooldown = true;
-        }
-    }
-
-    public void ClientStartCast()
-    {
-        Debug.Log("Cleint Start Cast");
-        if(!CombatStateMachiene.ChangeState("cast_fireball"))
-        {
-            Debug.Log("Unable to change state");
             return;
         }
 
-        //tell server we started casting
-        SpawnFireballServerRpc();
-
-        //spawn our dummy fireball on this client
-        SpawnDummyFireball();
+        // If user has selected to go into or out of hide mode
+        if (_input.fireball == true)
+        {
+            //change to fireball casting state, the on state enter has the animation logic
+            CombatStateMachine.ChangeState(fireballSpell);            
+        }
     }
 
     //This is triggered to an animation frame in Fireball.fbx animation
@@ -152,11 +108,16 @@ public class Fireball : NetworkBehaviour
             return;
         }
 
+        //if we the combat state is canceled(due to movement or escape) very close to
+        //the animation fire event, the event can trigger while we are technically
+        //not casting anymore, the bug cause two fireballs to spawn so handle it here.
 
-        Debug.Log("Shoot FireBall Animation Trigger");
-
-        //tell animator we are done casting, it could technically be another event as it fires before the animation is finished
-        _animator.SetBool("CastingFireball", false);
+        //TODO: we should probably be careful to add something similiar to all spells
+        //that use animation events to trigger.
+        if(!CombatStateMachine.IsInState(fireballSpell))
+        {
+            return;
+        }
 
         //set fireball launch position and direction until we have aiming it's just this
         Vector3 fireballDirection = ourPlayer.transform.forward;
@@ -167,13 +128,13 @@ public class Fireball : NetworkBehaviour
 
         //launch our fireball
         ShootDummyFireball(fireballPosition, fireballDirection);
-     }
+        CombatStateMachine.ChangeToDefaultState();
+
+    }
 
     private void SpawnDummyFireball()
     {
-        //start playing the fireball animation
-        _animator.SetBool("CastingFireball", true);
-
+        Debug.Log("Spawn Dummy");
         //attach to left hand
         clientFireball = Instantiate(clientFireballPrefab, leftHandTransform);
 
@@ -187,23 +148,27 @@ public class Fireball : NetworkBehaviour
 
     private void ShootDummyFireball(Vector3 Position, Vector3 Direction)
     {
+        Debug.Log("Shoot Dummy Fireball");
         if (!clientFireball)
         {
-            Debug.Log("ShootClientFireball(): Server Fireball not valid");
-            return;
+            Debug.Log("ShootClientFireball(): Client Fireball not valid, probably lag");
+            SpawnDummyFireball();
         }
 
         ShootFireball(clientFireball, Position, Direction);
+        clientFireball = null;
     }
 
     private void ShootServerFireball(Vector3 Position, Vector3 Direction)
     {
         if(!serverFireball)
         {
-            Debug.Log("ShootServerFireball(): Server Fireball not valid");
+            Debug.Log("ShootServerFireball(): Server Fireball not valid, should never happen");
+            return;
         }
 
         ShootFireball(serverFireball, Position, Direction);
+        serverFireball = null; 
     }
 
     private void ShootFireball(GameObject fireball, Vector3 Position, Vector3 Direction)
@@ -237,33 +202,23 @@ public class Fireball : NetworkBehaviour
     }
 
     [ServerRpc]
-    private void SpawnFireballServerRpc()
-    {
-        //tell clients we spawned
-        SpawnDummyFireballClientRpc();
-    }
-
-    [ServerRpc]
     private void ShootFireballServerRpc(Vector3 Position, Vector3 Direction)
     {
+        //check cooldown
+        if (cooldownManager.OnCooldown(cooldownId))
+        {
+            Debug.LogError("Server: Fireball is on cooldown");
+            return;
+        }
+
+        cooldownManager.ConsumeCooldown(cooldownId);
+
         //shoot server damaging fireball
         SpawnServerFireball();
         ShootServerFireball(Position, Direction);
 
         //tell clients we have fired
         ShootDummyFireballClientRpc(Position, Direction);
-    }
-
-
-    [ClientRpc]
-    private void SpawnDummyFireballClientRpc()
-    {
-        if(IsOwner)
-        {
-            return;
-        }
-
-        SpawnDummyFireball();
     }
 
     [ClientRpc]
@@ -277,5 +232,49 @@ public class Fireball : NetworkBehaviour
         //launch fireball
         ShootDummyFireball(Position, Direction);
     }
-    */
+    
+    public void OnCastAnimationStateEnter()
+    {
+        Debug.Log($"Animation state Fireball Start {NetworkObjectId}");
+
+        if(clientFireball)
+        {
+            //for some reason if it's coming from network controld animator events it starts and
+            //stops then starts again.
+            return;
+        }
+
+        SpawnDummyFireball();
+    }
+
+
+    public void OnCastAnimationStateExit()
+    {
+        Debug.Log($"Animation state Fireball Exit {NetworkObjectId}");
+    }
+
+    //combat state machine
+    void OnEnterCastState(string state)
+    {
+        Debug.Log("Combat state: Fireball Enter Cast");
+        //start playing the fireball animation
+        _animator.SetBool("CastingFireball", true);
+    }
+
+    void OnExitCastState(string state)
+    {
+        //can use exit time here to give the animation a little more time
+        Debug.Log("Combat state: Fireball Exit Cast");
+        _animator.SetBool("CastingFireball", false);
+
+
+        if (clientFireball)
+        {
+            //we are still managing the fireball so delete it.
+            Destroy(clientFireball);
+        }
+
+        serverFireball = null;
+        clientFireball = null;
+    }
 }
